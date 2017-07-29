@@ -42,7 +42,7 @@ public class MapReduce1 {
 			StringBuilder builder = new StringBuilder();
 			for (int i = 1, len = split.length; i < len; i++) {
 				builder.append(split[i]);
-				builder.append(" ");
+				builder.append("\t");
 			}
 			builder.deleteCharAt(builder.length() - 1);
 			record.setValue(builder.toString());
@@ -63,7 +63,7 @@ public class MapReduce1 {
 			List<String> list2 = new ArrayList<String>();
 			for (Record record : value) {
 				if (record.getIndex() == 1) {
-					int i = Integer.valueOf(record.getValue().split(" ")[4]);
+					int i = Integer.valueOf(record.getValue().split("\t")[4]);
 					iKey.set(i);
 					list1.add(record.getValue());
 				}
@@ -74,11 +74,11 @@ public class MapReduce1 {
 			for (String record1 : list1) {
 				String string = "";
 				for (String ss : list2) {
-					String[] split = ss.split(" ");
+					String[] split = ss.split("\t");
 					string = split[0];
 					sum += Float.valueOf(split[1]);
 				}
-				te.set(key.toString() + " " + record1 + " " + string + " " + sum);
+				te.set(key.toString() + "\t" + record1 + "\t" + string + "\t" + sum);
 				context.write(iKey, te);
 			}
 		}
@@ -103,7 +103,7 @@ public class MapReduce1 {
 			hdfs.delete(name, true);
 		}
 
-		FileInputFormat.addInputPath(job, new Path("/thumbs/"));
+		FileInputFormat.addInputPath(job, new Path("/thumbs/source"));
 		FileOutputFormat.setOutputPath(job, name);
 		// 系统关闭与否
 		System.exit(job.waitForCompletion(true) ? 0 : 1);
