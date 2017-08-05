@@ -16,7 +16,7 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 import com.min.entity.Record;
 
-public class MapReduce2 {
+public class MapReduce5_2 {
 	public static class Map extends Mapper<Object, Text, Text, Record> {
 		Text kText = new Text();
 
@@ -25,10 +25,9 @@ public class MapReduce2 {
 				throws IOException, InterruptedException {
 			// TODO Auto-generated method stub
 			String[] split = value.toString().split("\t");
-			if (split[0].equals("1")) {
 				Record record = new Record();
-				record.setRecordId(split[1]);
-				kText.set(split[1]);
+				record.setRecordId(split[2]);
+				kText.set(split[2]);
 
 				// 遍历value
 				StringBuilder builder = new StringBuilder();
@@ -40,7 +39,6 @@ public class MapReduce2 {
 
 				record.setValue(builder.toString());
 				context.write(kText, record);
-			}
 		}
 	}
 
@@ -70,7 +68,7 @@ public class MapReduce2 {
 		}
 
 		private int DateCount(String startTime, String endTime) {
-			SimpleDateFormat sFormat = new SimpleDateFormat("yy-dd-MM");
+			SimpleDateFormat sFormat = new SimpleDateFormat("yyyy-dd-MM");
 			try {
 				long tmp = sFormat.parse(endTime).getTime() - sFormat.parse(startTime).getTime();
 				return (int) (tmp / (1000 * 24 * 60 * 60));
@@ -85,7 +83,7 @@ public class MapReduce2 {
 	public static void main(String[] args) throws Exception {
 		Configuration configuration = new Configuration();
 		Job job = Job.getInstance(configuration);
-		job.setJarByClass(MapReduce2.class);
+		job.setJarByClass(MapReduce5_2.class);
 
 		job.setMapperClass(Map.class);
 		job.setReducerClass(Reduce.class);
@@ -96,7 +94,7 @@ public class MapReduce2 {
 		job.setOutputValueClass(Text.class);
 
 		FileSystem hdfs = FileSystem.get(configuration);
-		Path name = new Path("/thumbs/out2");
+		Path name = new Path("/thumbs/out3");
 		if (hdfs.exists(name)) {
 			hdfs.delete(name, true);
 		}

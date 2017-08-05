@@ -19,7 +19,7 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 import com.min.entity.Record;
 
-public class MapReduce1 {
+public class MapReduce4_1 {
 
 	public static class Map1 extends Mapper<Object, Text, Text, Record> {
 		Text keys = new Text();
@@ -87,7 +87,7 @@ public class MapReduce1 {
 	public static void main(String[] args) throws Exception {
 		Configuration configuration = new Configuration();
 		Job job = Job.getInstance(configuration, "eee");
-		job.setJarByClass(MapReduce1.class);
+		job.setJarByClass(MapReduce4_1.class);
 
 		job.setMapperClass(Map1.class);
 		job.setReducerClass(reduce1.class);

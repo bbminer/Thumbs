@@ -16,7 +16,7 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 import com.min.entity.Record;
 
-public class MapReduce3 {
+public class MapReduce4_2 {
 	public static class Map extends Mapper<Object, Text, Text, Record> {
 		Text kText = new Text();
 
@@ -25,13 +25,14 @@ public class MapReduce3 {
 				throws IOException, InterruptedException {
 			// TODO Auto-generated method stub
 			String[] split = value.toString().split("\t");
+			if (split[0].equals("1")) {
 				Record record = new Record();
 				record.setRecordId(split[1]);
 				kText.set(split[1]);
 
 				// 遍历value
 				StringBuilder builder = new StringBuilder();
-				for (int i = 0, len = split.length; i < len; i++) {
+				for (int i = 1, len = split.length; i < len; i++) {
 					builder.append(split[i]);
 					builder.append("\t");
 				}
@@ -39,6 +40,7 @@ public class MapReduce3 {
 
 				record.setValue(builder.toString());
 				context.write(kText, record);
+			}
 		}
 	}
 
@@ -83,7 +85,7 @@ public class MapReduce3 {
 	public static void main(String[] args) throws Exception {
 		Configuration configuration = new Configuration();
 		Job job = Job.getInstance(configuration);
-		job.setJarByClass(MapReduce3.class);
+		job.setJarByClass(MapReduce4_2.class);
 
 		job.setMapperClass(Map.class);
 		job.setReducerClass(Reduce.class);
@@ -94,7 +96,7 @@ public class MapReduce3 {
 		job.setOutputValueClass(Text.class);
 
 		FileSystem hdfs = FileSystem.get(configuration);
-		Path name = new Path("/thumbs/out3");
+		Path name = new Path("/thumbs/out2");
 		if (hdfs.exists(name)) {
 			hdfs.delete(name, true);
 		}
