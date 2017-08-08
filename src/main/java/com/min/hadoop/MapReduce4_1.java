@@ -51,7 +51,6 @@ public class MapReduce4_1 {
 	}
 
 	public static class reduce1 extends Reducer<Text, Record, IntWritable, Text> {
-		float sum = 0.0f;
 		IntWritable iKey = new IntWritable();
 		Text te = new Text();
 
@@ -61,6 +60,7 @@ public class MapReduce4_1 {
 			// TODO Auto-generated method stub
 			List<String> list1 = new ArrayList<String>();
 			List<String> list2 = new ArrayList<String>();
+			float sum = 0.0f;
 			for (Record record : value) {
 				if (record.getIndex() == 1) {
 					int i = Integer.valueOf(record.getValue().split("\t")[4]);

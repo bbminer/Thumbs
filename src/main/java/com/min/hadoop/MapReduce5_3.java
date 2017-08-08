@@ -25,20 +25,21 @@ public class MapReduce5_3 {
 				throws IOException, InterruptedException {
 			// TODO Auto-generated method stub
 			String[] split = value.toString().split("\t");
-				Record record = new Record();
-				record.setRecordId(split[3]);
-				kText.set(split[3]);
+			Record record = new Record();
+			String keyS = split[3] + "\t" + split[2] + "\t" + split[3];
+			record.setRecordId(keyS);
+			kText.set(keyS);
 
-				// 遍历value
-				StringBuilder builder = new StringBuilder();
-				for (int i = 1, len = split.length; i < len; i++) {
-					builder.append(split[i]);
-					builder.append("\t");
-				}
-				builder.deleteCharAt(builder.length() - 1);
+			// 遍历value
+			StringBuilder builder = new StringBuilder();
+			for (int i = 1, len = split.length; i < len; i++) {
+				builder.append(split[i]);
+				builder.append("\t");
+			}
+			builder.deleteCharAt(builder.length() - 1);
 
-				record.setValue(builder.toString());
-				context.write(kText, record);
+			record.setValue(builder.toString());
+			context.write(kText, record);
 		}
 	}
 
@@ -49,26 +50,69 @@ public class MapReduce5_3 {
 		protected void reduce(Text arg0, Iterable<Record> arg1, Reducer<Text, Record, Text, Text>.Context arg2)
 				throws IOException, InterruptedException {
 			// TODO Auto-generated method stub
-			int sum = 0;
-			float sumCost = 0.0f;
-			int finproportionNum = 0;
-			int dayCount = 0;
-			float reimburseNum = 0.0f;
+			// 住院
+			int count1 = 0; // 总就诊人数
+			float sumCost1 = 0.0f; // 总花费
+			int sumRecovery1 = 0; // 总治愈人数
+			int dayCount1 = 0; // 总住院天数
+			float sumRecost1 = 0.0f; // 总报销
+
+			// 门诊
+			int count2 = 0; // 总就诊人数
+			float sumCost2 = 0.0f; // 总花费
+			int sumRecovery2 = 0; // 总治愈人数
+			float sumRecost2 = 0.0f; // 总报销
+
 			for (Record record : arg1) {
 				String[] split = record.getValue().split("\t");
-				sum++;
-				sumCost += Float.valueOf(split[8]);
-				finproportionNum += Integer.valueOf(split[9]);
-				dayCount += DateCount(split[6], split[7]);
-				reimburseNum += Float.valueOf(split[11]);
+
+				// 住院
+				if ("1".equals(split[5])) {
+					count1++;
+					sumCost1 += Float.valueOf(split[8]);
+					sumRecovery1 += Integer.valueOf(split[9]);
+					dayCount1 += DateCount(split[6], split[7]);
+					sumRecost1 += Float.valueOf(split[11]);
+
+				}
+				// 门诊
+				else if ("2".equals(split[5])) {
+					count2++;
+					sumCost2 += Float.valueOf(split[8]);
+					sumRecovery2 += Integer.valueOf(split[9]);
+					sumRecost2 += Float.valueOf(split[11]);
+				}
 			}
-			vText.set(sum + "\t" + sumCost / sum + "\t" + reimburseNum / sum + "\t" + reimburseNum / sumCost + "\t"
-					+ dayCount / sum + "\t" + finproportionNum / sum);
-			arg2.write(arg0, vText);
+			if (count1 > 0 && count2 == 0) {
+				String avgRecovery1 = String.format("%.4f%%", sumRecovery1 / (count1 * 1.0f) * 100); // 治愈率
+				String avgCost1 = String.format("%.4f%%", sumRecost1 / (sumCost1 * 1.0f) * 100);// 人均报销比例
+
+				vText.set(count1 + "\t" + sumCost1 / count1 + "\t" + sumRecost1 / count1 + "\t" + avgCost1 + "\t"
+						+ dayCount1 / count1 + "\t" + avgRecovery1);
+				arg2.write(arg0, vText);
+			}
+			if (count2 > 0 && count1 == 0) {
+				String avgRecovery2 = String.format("%.4f%%", sumRecovery2 / (count2 * 1.0f) * 100); // 治愈率
+				String avgCost2 = String.format("%.4f%%", sumRecost2 / (sumCost2 * 1.0f) * 100);// 人均报销比例
+				vText.set(count2 + "\t" + sumCost2 / count2 + "\t" + sumRecost2 / count2 + "\t" + avgCost2 + "\t"
+						+ avgRecovery2);
+				arg2.write(arg0, vText);
+			}
+			if (count1 > 0 && count2 > 0) {
+				String avgRecovery1 = String.format("%.4f%%", sumRecovery1 / (count1 * 1.0f) * 100); // 治愈率
+				String avgCost1 = String.format("%.4f%%", sumRecost1 / (sumCost1 * 1.0f) * 100);// 人均报销比例
+
+				String avgRecovery2 = String.format("%.4f%%", sumRecovery2 / (count2 * 1.0f) * 100); // 治愈率
+				String avgCost2 = String.format("%.4f%%", sumRecost2 / (sumCost2 * 1.0f) * 100);// 人均报销比例
+				vText.set(count1 + "\t" + sumCost1 / count1 + "\t" + sumRecost1 / count1 + "\t" + avgCost1 + "\t"
+						+ dayCount1 / count1 + "\t" + avgRecovery1 + "\t" + count2 + "\t" + sumCost2 / count2 + "\t"
+						+ sumRecost2 / count2 + "\t" + avgCost2 + "\t" + avgRecovery2);
+				arg2.write(arg0, vText);
+			}
 		}
 
 		private int DateCount(String startTime, String endTime) {
-			SimpleDateFormat sFormat = new SimpleDateFormat("yyyy-dd-MM");
+			SimpleDateFormat sFormat = new SimpleDateFormat("yyyy-MM-dd");
 			try {
 				long tmp = sFormat.parse(endTime).getTime() - sFormat.parse(startTime).getTime();
 				return (int) (tmp / (1000 * 24 * 60 * 60));

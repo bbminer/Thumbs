@@ -27,8 +27,8 @@ public class MapReduce4_2 {
 			String[] split = value.toString().split("\t");
 			if (split[0].equals("1")) {
 				Record record = new Record();
-				record.setRecordId(split[1]);
-				kText.set(split[1]);
+				record.setRecordId(split[2]);
+				kText.set(split[2]);
 
 				// 遍历value
 				StringBuilder builder = new StringBuilder();
@@ -51,26 +51,29 @@ public class MapReduce4_2 {
 		protected void reduce(Text arg0, Iterable<Record> arg1, Reducer<Text, Record, Text, Text>.Context arg2)
 				throws IOException, InterruptedException {
 			// TODO Auto-generated method stub
-			int sum = 0;
-			float sumCost = 0.0f;
-			int finproportionNum = 0;
-			int dayCount = 0;
-			float reimburseNum = 0.0f;
+			int count = 0; // 总就诊人数
+			float sumCost = 0.0f; // 总花费
+			int sumRecovery = 0; // 总治愈人数
+			int dayCount = 0; // 总住院天数
+			float sumRecost = 0.0f; // 总报销
 			for (Record record : arg1) {
 				String[] split = record.getValue().split("\t");
-				sum++;
+				count++;
 				sumCost += Float.valueOf(split[8]);
-				finproportionNum += Integer.valueOf(split[9]);
+				sumRecovery += Integer.valueOf(split[9]);
 				dayCount += DateCount(split[6], split[7]);
-				reimburseNum += Float.valueOf(split[11]);
+				sumRecost += Float.valueOf(split[11]);
 			}
-			vText.set(sum + "\t" + sumCost / sum + "\t" + reimburseNum / sum + "\t" + reimburseNum / sumCost + "\t"
-					+ dayCount / sum + "\t" + finproportionNum / sum);
+			String avgRecovery = String.format("%.4f%%", sumRecovery / (count * 1.0f) * 100); // 治愈率
+			String avgCost = String.format("%.4f%%", sumRecost / (sumCost * 1.0f) * 100);// 人均报销比例
+			vText.set(count + "\t" + sumCost / count + "\t" + sumRecost / count + "\t" + avgCost + "\t"
+					+ dayCount / count + "\t" + avgRecovery);
 			arg2.write(arg0, vText);
 		}
 
+		// 计算住院天数
 		private int DateCount(String startTime, String endTime) {
-			SimpleDateFormat sFormat = new SimpleDateFormat("yy-dd-MM");
+			SimpleDateFormat sFormat = new SimpleDateFormat("yyyy-MM-dd");
 			try {
 				long tmp = sFormat.parse(endTime).getTime() - sFormat.parse(startTime).getTime();
 				return (int) (tmp / (1000 * 24 * 60 * 60));
